@@ -3,6 +3,9 @@ import { FC } from 'react';
 import { TOrder } from '@utils-types';
 import { FeedInfoUI } from '../ui/feed-info';
 
+import { useSelector } from 'react-redux';
+import { RootState } from '../../services/store';
+
 const getOrders = (orders: TOrder[], status: string): number[] =>
   orders
     .filter((item) => item.status === status)
@@ -11,18 +14,17 @@ const getOrders = (orders: TOrder[], status: string): number[] =>
 
 export const FeedInfo: FC = () => {
   /** TODO: взять переменные из стора */
-  const orders: TOrder[] = [];
-  const feed = {};
+  const { feeds } = useSelector((store: RootState) => store.burger);
 
-  const readyOrders = getOrders(orders, 'done');
+  const readyOrders = getOrders(feeds.orders, 'done');
 
-  const pendingOrders = getOrders(orders, 'pending');
+  const pendingOrders = getOrders(feeds.orders, 'pending');
 
   return (
     <FeedInfoUI
       readyOrders={readyOrders}
       pendingOrders={pendingOrders}
-      feed={feed}
+      feed={feeds}
     />
   );
 };

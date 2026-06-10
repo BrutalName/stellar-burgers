@@ -18,14 +18,6 @@ export const BurgerConstructor: FC = () => {
   const dispatch: AppDispatch = useDispatch();
   const navigate = useNavigate();
 
-  const constructorItemsWithId = {
-    ...constructorItems,
-    ingredients: constructorItems.ingredients.map((ingredient, index) => ({
-      ...ingredient,
-      id: index
-    }))
-  };
-
   const onOrderClick = () => {
     if (constructorItems.bun && constructorItems.ingredients.length !== 0) {
       if (!user) {
@@ -42,7 +34,7 @@ export const BurgerConstructor: FC = () => {
   };
 
   const closeOrderModal = () => {
-    dispatch(clearOrder());
+    if (!orderRequest) dispatch(clearOrder());
   };
 
   const price = useMemo(
@@ -59,7 +51,7 @@ export const BurgerConstructor: FC = () => {
     <BurgerConstructorUI
       price={price}
       orderRequest={orderRequest}
-      constructorItems={constructorItemsWithId}
+      constructorItems={constructorItems}
       orderModalData={orderModalData}
       onOrderClick={onOrderClick}
       closeOrderModal={closeOrderModal}

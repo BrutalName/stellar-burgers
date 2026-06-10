@@ -3,13 +3,20 @@ import {
   getIngredientsApi,
   getFeedsApi,
   getOrdersApi,
-  orderBurgerApi
+  orderBurgerApi,
+  getOrderByNumberApi
 } from '../../utils/burger-api';
 import { TIngredient, TOrder } from '../../utils/types';
+import { v4 as uuidv4 } from 'uuid';
 
 export const getIngredientsThunk = createAsyncThunk(
   '/ingredients',
   async () => await getIngredientsApi()
+);
+
+export const getOrderByNumberThunk = createAsyncThunk(
+  '/getOrder',
+  async (number: number) => await getOrderByNumberApi(number)
 );
 
 export const getFeedsThunk = createAsyncThunk(
@@ -33,6 +40,10 @@ type TFeeds = {
   totalToday: number;
 };
 
+type TIngredientWithId = TIngredient & {
+  id: string;
+};
+
 interface BurgerState {
   isLoading: boolean;
   orderRequest: boolean;
@@ -44,8 +55,8 @@ interface BurgerState {
   orderData: TOrder | null;
   orderModalData: TOrder | null;
   constructorItems: {
-    bun: TIngredient | null;
-    ingredients: TIngredient[];
+    bun: TIngredientWithId | null;
+    ingredients: TIngredientWithId[];
   };
 }
 
@@ -80,19 +91,19 @@ function moveItemUp<T>(array: T[], index: number, operation: 'up' | 'down') {
   }
 }
 
-function removeItemByIndex<T>(array: T[], index: number): T[] {
-  return array.filter((_, i) => i !== index);
-}
-
 export const burgerSlice = createSlice({
   name: 'burger',
   initialState,
   reducers: {
     addIngredient: (state, action) => {
-      if (action.payload.type === 'bun') {
-        state.constructorItems.bun = action.payload;
+      const newAddIngredient = {
+        ...action.payload,
+        id: uuidv4()
+      };
+      if (newAddIngredient.type === 'bun') {
+        state.constructorItems.bun = newAddIngredient;
       } else {
-        state.constructorItems.ingredients.push(action.payload);
+        state.constructorItems.ingredients.push(newAddIngredient);
       }
     },
     changeIngredientsOrder: (state, action) => {
@@ -101,12 +112,11 @@ export const burgerSlice = createSlice({
       moveItemUp<TIngredient>(ingredients, index, operation);
     },
     removeIngredientFromOrder: (state, action) => {
-      const { index } = action.payload;
-      const ingredients = state.constructorItems.ingredients;
-      state.constructorItems.ingredients = removeItemByIndex<TIngredient>(
-        ingredients,
-        index
-      );
+      const { id } = action.payload;
+      state.constructorItems.ingredients =
+        state.constructorItems.ingredients.filter(
+          (ingredient) => ingredient.id !== id
+        );
     },
     clearOrder: (state) => {
       state.orderModalData = null;
@@ -124,7 +134,8 @@ export const burgerSlice = createSlice({
           state.feeds.orders.find(
             (order) => String(order.number) === action.payload
           ) || null;
-      } else
+      }
+      if (!state.orderData && state.orders.length)
         state.orderData =
           state.orders.find(
             (order) => String(order.number) === action.payload
@@ -183,6 +194,17 @@ export const burgerSlice = createSlice({
         number: action.payload.order.number,
         ingredients: []
       };
+    });
+    builder.addCase(getOrderByNumberThunk.pending, (state) => {
+      state.isLoading = true;
+    });
+    builder.addCase(getOrderByNumberThunk.rejected, (state) => {
+      state.isLoading = false;
+    });
+    builder.addCase(getOrderByNumberThunk.fulfilled, (state, action) => {
+      state.isLoading = false;
+      if (action.payload.orders.length)
+        state.orderData = action.payload.orders[0];
     });
   }
 });

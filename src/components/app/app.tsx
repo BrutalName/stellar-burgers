@@ -24,6 +24,7 @@ import {
 } from '@components';
 import { AppDispatch, RootState } from '../../services/store';
 import { getCookie } from '../../utils/cookie';
+import styles from './app.module.css';
 
 export const App = () => {
   const { user, isInit } = useSelector((store: RootState) => store.user);
@@ -48,7 +49,7 @@ export const App = () => {
   }, []);
 
   return (
-    <>
+    <div className={styles.app}>
       <AppHeader />
       <Routes location={background || location}>
         <Route path='/' element={<ConstructorPage />} />
@@ -101,40 +102,52 @@ export const App = () => {
             </ProtectedRoute>
           }
         />
-        <Route path='*' element={<NotFound404 />} />
-      </Routes>
-      <Routes>
-        <Route
-          path='/feed/:number'
-          element={
-            <Modal onClose={() => onClose('/feed')} title={`#${orderTitle}`}>
-              <OrderInfo />
-            </Modal>
-          }
-        />
-        <Route
-          path='/ingredients/:id'
-          element={
-            <Modal onClose={() => onClose('/')} title='Детали ингредиента'>
-              <IngredientDetails />
-            </Modal>
-          }
-        />
         <Route
           path='/profile/orders/:number'
           element={
             <ProtectedRoute onlyAuth>
-              <Modal
-                onClose={() => onClose('/profile/orders')}
-                title={`#${orderTitle}`}
-              >
-                <OrderInfo />
-              </Modal>
+              <OrderInfo />
             </ProtectedRoute>
           }
         />
+        <Route path='/feed/:number' element={<OrderInfo />} />
+        <Route path='/ingredients/:id' element={<IngredientDetails />} />
+        <Route path='*' element={<NotFound404 />} />
       </Routes>
-    </>
+      {background && (
+        <Routes>
+          <Route
+            path='/feed/:number'
+            element={
+              <Modal onClose={() => onClose('/feed')} title={`#${orderTitle}`}>
+                <OrderInfo />
+              </Modal>
+            }
+          />
+          <Route
+            path='/ingredients/:id'
+            element={
+              <Modal onClose={() => onClose('/')} title='Детали ингредиента'>
+                <IngredientDetails />
+              </Modal>
+            }
+          />
+          <Route
+            path='/profile/orders/:number'
+            element={
+              <ProtectedRoute onlyAuth>
+                <Modal
+                  onClose={() => onClose('/profile/orders')}
+                  title={`#${orderTitle}`}
+                >
+                  <OrderInfo />
+                </Modal>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      )}
+    </div>
   );
 };
 

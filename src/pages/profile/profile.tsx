@@ -20,14 +20,6 @@ export const Profile: FC = () => {
     password: ''
   });
 
-  useEffect(() => {
-    setFormValue((prevState) => ({
-      ...prevState,
-      name: user.name,
-      email: user.email
-    }));
-  }, [user]);
-
   const isFormChanged =
     formValue.name !== user.name ||
     formValue.email !== user.email ||
@@ -41,7 +33,12 @@ export const Profile: FC = () => {
         password: formValue.password,
         name: formValue.name
       })
-    );
+    ).then(() => {
+      setFormValue((prevState) => ({
+        ...prevState,
+        password: ''
+      }));
+    });
   };
 
   const handleCancel = (e: SyntheticEvent) => {

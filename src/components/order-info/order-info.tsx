@@ -5,7 +5,11 @@ import { TIngredient } from '@utils-types';
 import { useSelector, useDispatch } from 'react-redux';
 import { AppDispatch, RootState } from '../../services/store';
 import { useParams } from 'react-router-dom';
-import { setOrderTitle, getOrderData } from '../../features/burger/burgerSlice';
+import {
+  setOrderTitle,
+  getOrderData,
+  getOrderByNumberThunk
+} from '../../features/burger/burgerSlice';
 
 export const OrderInfo: FC = () => {
   /** TODO: взять переменные orderData и ingredients из стора */
@@ -17,6 +21,9 @@ export const OrderInfo: FC = () => {
 
   useEffect(() => {
     dispatch(getOrderData(number));
+    if (!orderData) {
+      dispatch(getOrderByNumberThunk(Number(number)));
+    }
   }, []);
 
   /* Готовим данные для отображения */

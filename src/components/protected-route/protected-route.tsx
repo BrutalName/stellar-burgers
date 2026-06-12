@@ -17,18 +17,29 @@ export const ProtectedRoute = ({
 }: ProtectedRouteProps) => {
   const { user, isInit } = useSelector((store: RootState) => store.user);
   const location = useLocation();
+  const background = location.state?.background;
+  const backgroundFrom = location.state?.backgroundFrom;
 
   if (!isInit) {
     return <Preloader />;
   }
 
   if (onlyAuth && !user) {
-    return <Navigate replace to='/login' state={{ from: location }} />;
+    return (
+      <Navigate
+        replace
+        to='/login'
+        state={{ from: location, backgroundFrom: background }}
+      />
+    );
   }
 
   if (onlyUnAuth && user) {
     const from = location.state?.from || { pathname: '/' };
-    return <Navigate replace to={from} />;
+    return (
+      <Navigate replace to={from} state={{ background: backgroundFrom }} />
+    );
   }
+
   return children;
 };

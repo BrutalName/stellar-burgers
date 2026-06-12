@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import {
   getIngredientsApi,
   getFeedsApi,
@@ -8,6 +8,7 @@ import {
 } from '../../utils/burger-api';
 import { TIngredient, TOrder } from '../../utils/types';
 import { v4 as uuidv4 } from 'uuid';
+import reducer from '../user/userSlice';
 
 export const getIngredientsThunk = createAsyncThunk(
   '/ingredients',
@@ -55,7 +56,7 @@ interface BurgerState {
   orderData: TOrder | null;
   orderModalData: TOrder | null;
   constructorItems: {
-    bun: TIngredientWithId | null;
+    bun: TIngredient | null;
     ingredients: TIngredientWithId[];
   };
 }
@@ -95,16 +96,17 @@ export const burgerSlice = createSlice({
   name: 'burger',
   initialState,
   reducers: {
-    addIngredient: (state, action) => {
-      const newAddIngredient = {
-        ...action.payload,
-        id: uuidv4()
-      };
-      if (newAddIngredient.type === 'bun') {
-        state.constructorItems.bun = newAddIngredient;
-      } else {
-        state.constructorItems.ingredients.push(newAddIngredient);
-      }
+    addIngredient: {
+      reducer: (state, { payload }: PayloadAction<TIngredientWithId>) => {
+        if (payload.type === 'bun') {
+          state.constructorItems.bun = { ...payload };
+        } else {
+          state.constructorItems.ingredients.push(payload);
+        }
+      },
+      prepare: (ingredient: TIngredient) => ({
+        payload: { ...ingredient, id: uuidv4() }
+      })
     },
     changeIngredientsOrder: (state, action) => {
       const { index, operation } = action.payload;
@@ -129,6 +131,11 @@ export const burgerSlice = createSlice({
       state.orderTitle = action.payload;
     },
     getOrderData: (state, action) => {
+      if (state.orderData !== null) {
+        if (state.orderData.number === action.payload) {
+          return;
+        } else state.orderData = null;
+      }
       if (state.feeds.orders.length) {
         state.orderData =
           state.feeds.orders.find(
@@ -186,12 +193,7 @@ export const burgerSlice = createSlice({
       state.isLoading = false;
       state.orderRequest = false;
       state.orderModalData = {
-        _id: action.payload.order._id,
-        status: action.payload.order.status,
-        name: action.payload.order.name,
-        createdAt: action.payload.order.createdAt,
-        updatedAt: action.payload.order.updatedAt,
-        number: action.payload.order.number,
+        ...action.payload.order,
         ingredients: []
       };
     });

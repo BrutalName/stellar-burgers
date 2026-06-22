@@ -1,25 +1,36 @@
-import { FC, useMemo } from 'react';
+import { FC, useEffect, useMemo } from 'react';
 import { Preloader } from '../ui/preloader';
 import { OrderInfoUI } from '../ui/order-info';
 import { TIngredient } from '@utils-types';
+import { useSelector, useDispatch } from 'react-redux';
+import { AppDispatch, RootState } from '../../services/store';
+import { useParams } from 'react-router-dom';
+import {
+  setOrderTitle,
+  getOrderData,
+  getOrderByNumberThunk
+} from '../../features/burger/burgerSlice';
 
 export const OrderInfo: FC = () => {
   /** TODO: взять переменные orderData и ingredients из стора */
-  const orderData = {
-    createdAt: '',
-    ingredients: [],
-    _id: '',
-    status: '',
-    name: '',
-    updatedAt: 'string',
-    number: 0
-  };
+  const dispatch: AppDispatch = useDispatch();
+  const { number } = useParams();
+  const { ingredients, orderData, isLoading } = useSelector(
+    (store: RootState) => store.burger
+  );
 
-  const ingredients: TIngredient[] = [];
+  useEffect(() => {
+    dispatch(getOrderData(number));
+    if (!orderData) {
+      dispatch(getOrderByNumberThunk(Number(number)));
+    }
+  }, []);
 
   /* Готовим данные для отображения */
   const orderInfo = useMemo(() => {
     if (!orderData || !ingredients.length) return null;
+
+    dispatch(setOrderTitle(orderData.number));
 
     const date = new Date(orderData.createdAt);
 
@@ -59,8 +70,12 @@ export const OrderInfo: FC = () => {
     };
   }, [orderData, ingredients]);
 
-  if (!orderInfo) {
+  if (!orderInfo && isLoading) {
     return <Preloader />;
+  }
+
+  if (!orderInfo) {
+    return null;
   }
 
   return <OrderInfoUI orderInfo={orderInfo} />;

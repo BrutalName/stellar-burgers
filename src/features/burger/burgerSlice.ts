@@ -61,7 +61,7 @@ interface BurgerState {
   };
 }
 
-const initialState: BurgerState = {
+export const initialState: BurgerState = {
   isLoading: false,
   orderRequest: false,
   ingredients: [],
@@ -99,7 +99,19 @@ export const burgerSlice = createSlice({
     addIngredient: {
       reducer: (state, { payload }: PayloadAction<TIngredientWithId>) => {
         if (payload.type === 'bun') {
-          state.constructorItems.bun = { ...payload };
+          state.constructorItems.bun = {
+            _id: payload._id,
+            name: payload.name,
+            type: payload.type,
+            proteins: payload.proteins,
+            fat: payload.fat,
+            carbohydrates: payload.carbohydrates,
+            calories: payload.calories,
+            price: payload.price,
+            image: payload.image,
+            image_large: payload.image_large,
+            image_mobile: payload.image_mobile
+          };
         } else {
           state.constructorItems.ingredients.push(payload);
         }
